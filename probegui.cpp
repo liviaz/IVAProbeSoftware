@@ -15,8 +15,12 @@ ProbeGUI::ProbeGUI(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::ProbeGUI)
 {
+
+    qRegisterMetaType<PortArray>("PortArray");
+
     readingSamples = false;
     DAQready = false;
+    digitalOn = false;
     ui->setupUi(this);
     ui->analogReadBtn->setEnabled(false);
 
@@ -27,13 +31,16 @@ ProbeGUI::ProbeGUI(QWidget *parent) :
     thread_dc->start();
 
     // connect signals and slots
-    connect(this, SIGNAL(readAnalogSamples(bool)), dc, SLOT(startStopReading(bool)));
-    connect(dc, SIGNAL(sampleReady(double)), this, SLOT(receiveSample(double)));
     connect(thread_dc, SIGNAL(finished()), thread_dc, SLOT(deleteLater()));
+    connect(this, SIGNAL(scanForPorts()), dc, SLOT(readPortArray()));
+    connect(dc, SIGNAL(portsDetected(PortArray)), this, SLOT(displayDetectedPorts(PortArray)));
     connect(this, SIGNAL(connectToDAQ(QString)), dc, SLOT(connectToDAQ(QString)));
     connect(dc, SIGNAL(DAQReady(bool)), this, SLOT(enableDataCollection(bool)));
+    connect(this, SIGNAL(readAnalogSamples(bool)), dc, SLOT(startStopReading(bool)));
+    connect(dc, SIGNAL(sampleReady(double)), this, SLOT(receiveSample(double)));
+    connect(this, SIGNAL(writeDigitalSample(bool)), dc, SLOT(writeDigitalSample(bool)));
 
-
+    emit scanForPorts();
 }
 
 ProbeGUI::~ProbeGUI()
@@ -66,13 +73,14 @@ void ProbeGUI::on_analogReadBtn_clicked()
 
 void ProbeGUI::receiveSample(double sample)
 {
-    qDebug() << "sample received: " << sample;
+    //qDebug() << "sample received: " << sample;
 }
 
 
 void ProbeGUI::on_connectBtn_clicked()
 {
-    emit connectToDAQ(ui->portTextEdit->text());
+    QString currPort = ui->portList->currentText();
+    emit connectToDAQ(currPort);
 }
 
 void ProbeGUI::enableDataCollection(bool ready)
@@ -86,3 +94,32 @@ void ProbeGUI::enableDataCollection(bool ready)
     }
 
 }
+
+void ProbeGUI::displayDetectedPorts(QVector<QString> ports)
+{
+    ui->portList->clear();
+    for (QString currPort : ports){
+        ui->portList->addItem(currPort);
+    }
+}
+
+void ProbeGUI::on_heatingBtn_clicked()
+{
+   if (digitalOn){
+       emit writeDigitalSample(false);
+       digitalOn = false;
+       ui->heatingBtn->setText("Start heating");
+       ui->heatingLabel->setText("Heating: OFF");
+   } else {
+       emit writeDigitalSample(true);
+       digitalOn = true;
+       ui->heatingBtn->setText("Stop heating");
+       ui->heatingLabel->setText("Heating: ON");
+   }
+}
+
+
+
+
+
+

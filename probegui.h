@@ -6,6 +6,7 @@
 #include "ui_probegui.h"
 #include <QThread>
 #include <QString>
+#include <QVector>
 
 namespace Ui {
 class ProbeGUI;
@@ -24,18 +25,25 @@ private:
     DAQController *dc;
     bool readingSamples;
     bool DAQready;
+    bool digitalOn;
     QThread *thread_dc;
+    typedef QVector<QString> PortArray;
 
 private slots:
     void on_analogReadBtn_clicked();
-    void receiveSample(double sample);
     void on_connectBtn_clicked();
+    void on_heatingBtn_clicked();
+
+public slots:
+    void receiveSample(double sample);
     void enableDataCollection(bool ready);
+    void displayDetectedPorts(QVector<QString> ports);
 
 signals:
     void readAnalogSamples(bool start);
     void connectToDAQ(QString portName);
-
+    void scanForPorts();
+    void writeDigitalSample(bool value);
 };
 
 #endif // PROBEGUI_H

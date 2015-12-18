@@ -6,6 +6,7 @@
 #include <QObject>
 #include <QTimer>
 #include <QString>
+#include <QVector>
 
 class DAQController : public QObject
 {
@@ -28,18 +29,19 @@ private:
     char *errBuff;
     bool readingSamples;
     QTimer *sampleTimer;
-
     void initTasks(QString taskChannel);
 
 signals:
     void sampleReady(double value);
     void DAQReady(bool ready);
+    void portsDetected(QVector<QString> ports);
 
 public slots:
     void startStopReading(bool start);
     void readSingleSample();
     void connectToDAQ(QString taskChannel);
-
+    void readPortArray();
+    void writeDigitalSample(bool value);
 };
 
 #endif // DAQCONTROLLER_H

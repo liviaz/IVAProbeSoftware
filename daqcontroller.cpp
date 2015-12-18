@@ -22,13 +22,6 @@ DAQController::DAQController(QObject *parent) :
     sampleTimer = new QTimer(this);
     connect(sampleTimer, SIGNAL(timeout()), this, SLOT(readSingleSample()));
 
-    // check for ports
-    // TODO: finish parsing devNamesBuffer into QString array
-    // send to user, put in dropdown list to give connection options
-    char devNamesBuffer[1000];
-    DAQmxGetSystemInfoAttribute(DAQmx_Sys_DevNames,devNamesBuffer,1000);
-    QString devices = QString(devNamesBuffer);
-    qDebug() << devices;
 }
 
 // destructor
@@ -48,7 +41,7 @@ void DAQController::initTasks(QString taskChannel)
     QString taskAO = QString(taskChannel);
     taskAO.append("/ao0");
     QString taskDO = QString(taskChannel);
-    taskDO.append("/p0.0");
+    taskDO.append("/port0/line0");
 
     // analog in first
     errorAI = DAQmxCreateTask("", &taskHandleAI);
@@ -74,6 +67,10 @@ void DAQController::initTasks(QString taskChannel)
     qDebug() << "errorAO: " << errorAO;
 
 
+    errorDO = DAQmxCreateTask("", &taskHandleDO);
+    errorDO = DAQmxCreateDOChan(taskHandleDO,taskDO.toLatin1().data(),
+                                "",DAQmx_Val_ChanForAllLines);
+    qDebug() << "errorDO: " << errorDO;
 }
 
 void DAQController::startStopReading(bool start)
@@ -91,8 +88,6 @@ void DAQController::readSingleSample(){
     errorAI = DAQmxReadAnalogF64(taskHandleAI,1,1.0,DAQmx_Val_GroupByChannel,
                                  data,1000,&read,NULL);
 
-    qDebug() << "errorAI: " << errorAI;
-    qDebug() << "samples read: " << read;
     qDebug() << "data: " << *data;
 
     if ((read == 1) && (errorAI == 0)){
@@ -100,6 +95,22 @@ void DAQController::readSingleSample(){
     } else {
         qDebug() << "error! " << errorAI;
     }
+}
+
+void DAQController::writeDigitalSample(bool value){
+
+    qDebug() << "value to write: " << value;
+
+    uInt8 dataOut[1] = {0};
+    if (value){
+        dataOut[0] = 255;
+    }
+
+    qDebug() << "dataOut: " << *dataOut;
+    int32 *numSamps = new int32(1);
+    errorDO = DAQmxWriteDigitalU8(taskHandleDO,1,1,1.0,DAQmx_Val_GroupByChannel,
+                                  dataOut,numSamps,NULL);
+    qDebug() << "errorDO: " << errorDO;
 }
 
 void DAQController::connectToDAQ(QString taskChannelName)
@@ -117,5 +128,31 @@ void DAQController::connectToDAQ(QString taskChannelName)
 
 }
 
+void DAQController::readPortArray(){
 
+    QVector<QString> ports(QVector<QString>(0));
+    char devNamesBuffer[1000];
+    DAQmxGetSystemInfoAttribute(DAQmx_Sys_DevNames,devNamesBuffer,1000);
+    char *currChar = devNamesBuffer;
+    QString currPort = "";
+
+    while (*currChar){
+        if (*currChar == ','){
+            ports.append(currPort);
+            currPort.clear();
+            currChar++;
+        } else {
+            currPort.append(*currChar);
+        }
+        currChar++;
+    }
+
+    ports.append(currPort);
+    emit portsDetected(ports);
+
+    char doNamesBuffer[1000];
+    DAQmxGetDeviceAttribute("Dev3",DAQmx_Dev_DI_Lines, doNamesBuffer);
+
+    qDebug() << "digital lines: " << doNamesBuffer;
+}
 
