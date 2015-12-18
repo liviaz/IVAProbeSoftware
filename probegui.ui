@@ -14,43 +14,43 @@
    <string>ProbeGUI</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QPushButton" name="pushButton">
-    <property name="geometry">
-     <rect>
-      <x>50</x>
-      <y>50</y>
-      <width>121</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>SUP</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="textLabel">
-    <property name="geometry">
-     <rect>
-      <x>50</x>
-      <y>120</y>
-      <width>121</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-   </widget>
    <widget class="QPushButton" name="analogReadBtn">
     <property name="geometry">
      <rect>
-      <x>200</x>
-      <y>50</y>
+      <x>190</x>
+      <y>20</y>
       <width>121</width>
       <height>41</height>
      </rect>
     </property>
     <property name="text">
      <string>Read Samples!</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="connectBtn">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>20</y>
+      <width>121</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Connect Device</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="portTextEdit">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>70</y>
+      <width>113</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Dev3</string>
     </property>
    </widget>
   </widget>

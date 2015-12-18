@@ -4,6 +4,8 @@
 #include <QMainWindow>
 #include "daqcontroller.h"
 #include "ui_probegui.h"
+#include <QThread>
+#include <QString>
 
 namespace Ui {
 class ProbeGUI;
@@ -20,13 +22,19 @@ public:
 private:
     Ui::ProbeGUI *ui;
     DAQController *dc;
+    bool readingSamples;
+    bool DAQready;
+    QThread *thread_dc;
 
 private slots:
-    void on_pushButton_clicked();
     void on_analogReadBtn_clicked();
+    void receiveSample(double sample);
+    void on_connectBtn_clicked();
+    void enableDataCollection(bool ready);
 
 signals:
-    void readAnalogSamples();
+    void readAnalogSamples(bool start);
+    void connectToDAQ(QString portName);
 
 };
 
